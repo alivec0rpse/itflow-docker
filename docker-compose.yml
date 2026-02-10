@@ -1,0 +1,173 @@
+services:
+  itflow:
+    build:
+      context: .
+      target: base
+    container_name: itflow-web
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-itflow}
+      DB_USER: ${DB_USER:-itflow}
+      DB_PASSWORD: ${DB_PASSWORD:?Database password is required}
+      
+      # Application Configuration
+      APP_NAME: ${APP_NAME:-ITFlow}
+      BASE_URL: ${BASE_URL:-http://localhost}
+      HTTPS_ONLY: ${HTTPS_ONLY:-false}
+      REPO_BRANCH: ${REPO_BRANCH:-master}
+      
+      # Timezone
+      TZ: ${TZ:-UTC}
+      
+      # Optional: Mail Configuration
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-tls}
+      
+      # Optional: Enable setup wizard (set to 0 after initial setup)
+      ENABLE_SETUP: ${ENABLE_SETUP:-1}
+      
+      # Security
+      SESSION_TIMEOUT: ${SESSION_TIMEOUT:-3600}
+      
+    ports:
+      - "${WEB_PORT:-80}:80"
+    volumes:
+      - ./uploads:/var/www/html/uploads
+      - ./logs:/var/log/apache2
+      # Persist config.php between restarts (optional - generated from env vars)
+      - ./config:/var/www/html/config
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - itflow-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Cron Service for Scheduled Tasks
+  itflow-cron:
+    build:
+      context: .
+      target: cron
+    container_name: itflow-cron
+    restart: unless-stopped
+    environment:
+      # Same environment variables as main app
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-itflow}
+      DB_USER: ${DB_USER:-itflow}
+      DB_PASSWORD: ${DB_PASSWORD:?Database password is required}
+      APP_NAME: ${APP_NAME:-ITFlow}
+      BASE_URL: ${BASE_URL:-http://localhost}
+      HTTPS_ONLY: ${HTTPS_ONLY:-false}
+      REPO_BRANCH: ${REPO_BRANCH:-master}
+      TZ: ${TZ:-UTC}
+      ENABLE_SETUP: "0"
+    volumes:
+      - ./uploads:/var/www/html/uploads
+      - ./logs/cron:/var/log
+      - ./config:/var/www/html/config
+    depends_on:
+      - itflow
+      - db
+    networks:
+      - itflow-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/cron-healthcheck.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # MariaDB Database
+  db:
+    image: mariadb:10.11
+    container_name: itflow-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Root database password is required}
+      MYSQL_DATABASE: ${DB_NAME:-itflow}
+      MYSQL_USER: ${DB_USER:-itflow}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Database password is required}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mysql/mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
+      # Optional: Import initial database
+      # - ./itflow-master/db.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      # Only expose if you need external access
+      - "${DB_PORT_EXTERNAL:-3306}:3306"
+    networks:
+      - itflow-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --max_allowed_packet=256M
+      --innodb_buffer_pool_size=512M
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: itflow-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-itflow}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 256M
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    depends_on:
+      - db
+    networks:
+      - itflow-network
+    profiles:
+      - tools
+
+  # Optional: Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: itflow-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - itflow
+    networks:
+      - itflow-network
+    profiles:
+      - nginx
+
+networks:
+  itflow-network:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local

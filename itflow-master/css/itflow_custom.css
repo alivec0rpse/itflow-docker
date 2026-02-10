@@ -1,0 +1,44 @@
+/*
+   For screens below 576px (xs):
+   - Make the button full-width, display:block
+*/
+@media (max-width: 575.98px) {
+  .btn-responsive {
+    display: block;
+    width: 100%;
+  }
+}
+
+/*
+   For screens 576px (sm) and above:
+   - Revert to an inline style
+*/
+@media (min-width: 576px) {
+  .btn-responsive {
+    display: inline-block;
+    width: auto;
+  }
+}
+
+.drag-handle {
+    cursor: grab !important;
+}
+
+.drag-handle:active {
+    cursor: grabbing !important;
+}
+
+.star-toggle input {
+    display: none;
+}
+
+.star-toggle i {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #adb5bd;
+}
+
+.star-toggle input:checked + i {
+    color: #f1c40f;
+    font-weight: 900;
+}

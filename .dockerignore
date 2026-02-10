@@ -1,0 +1,63 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Docker files (don't include in image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation
+README.md
+*.md
+docs/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+
+# Composer
+vendor/
+composer.lock
+
+# OS files
+Thumbs.db
+ehthumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+backups/
+
+# Config files (will be generated)
+config.php

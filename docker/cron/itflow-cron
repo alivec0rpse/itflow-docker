@@ -1,0 +1,19 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Main cron job - runs every 5 minutes
+*/5 * * * * www-data cd /var/www/html && php -f /var/www/html/cron/cron.php >> /var/log/cron.log 2>&1
+
+# Mail queue processor - runs every minute
+* * * * * www-data cd /var/www/html && php -f /var/www/html/cron/mail_queue.php >> /var/log/cron.log 2>&1
+
+# Domain refresher - runs daily at 2 AM
+0 2 * * * www-data cd /var/www/html && php -f /var/www/html/cron/domain_refresher.php >> /var/log/cron.log 2>&1
+
+# Certificate refresher - runs daily at 3 AM
+0 3 * * * www-data cd /var/www/html && php -f /var/www/html/cron/certificate_refresher.php >> /var/log/cron.log 2>&1
+
+# Ticket email parser - runs every 2 minutes
+*/2 * * * * www-data cd /var/www/html && php -f /var/www/html/cron/ticket_email_parser.php >> /var/log/cron.log 2>&1
+
+

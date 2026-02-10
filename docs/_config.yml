@@ -1,0 +1,12 @@
+title: ITFlow Docker Documentation
+description: Production-ready Docker setup for ITFlow
+theme: jekyll-theme-cayman
+markdown: kramdown
+repository: alivec0rpse/itflow-docker
+
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true

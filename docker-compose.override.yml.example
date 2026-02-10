@@ -1,0 +1,49 @@
+# Docker Compose Override Example
+# Copy this to docker-compose.override.yml for development
+# This file extends docker-compose.yml with development-specific settings
+
+version: '3.8'
+
+services:
+  itflow:
+    # Mount source code for live editing
+    volumes:
+      - ./itflow-master:/var/www/html:rw
+      - ./uploads:/var/www/html/uploads
+      - ./logs:/var/log/apache2
+      - ./config:/var/www/html/config
+    
+    # Enable debug mode
+    environment:
+      DEBUG_MODE: "1"
+      PHP_DISPLAY_ERRORS: "1"
+      PHP_ERROR_REPORTING: "E_ALL"
+      ENABLE_SETUP: "1"
+    
+    # Expose additional ports if needed
+    # ports:
+    #   - "8080:80"
+
+  itflow-cron:
+    # Mount source code for live editing
+    volumes:
+      - ./itflow-master:/var/www/html:rw
+      - ./uploads:/var/www/html/uploads
+      - ./logs/cron:/var/log
+      - ./config:/var/www/html/config
+    
+    environment:
+      DEBUG_MODE: "1"
+
+  db:
+    # Expose database port for external tools
+    ports:
+      - "3306:3306"
+    
+    # Use a different database for development
+    # environment:
+    #   MYSQL_DATABASE: itflow_dev
+
+  # Always include phpMyAdmin in development
+  phpmyadmin:
+    profiles: []  # Remove 'tools' profile requirement

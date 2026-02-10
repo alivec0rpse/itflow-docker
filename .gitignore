@@ -1,0 +1,43 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Data directories
+uploads/
+logs/
+config/
+backups/
+
+# Database
+*.sql
+*.sql.gz
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Certificates
+docker/nginx/ssl/*.pem
+docker/nginx/ssl/*.key
+docker/nginx/ssl/*.crt
+
+# Old/backup files
+*.old.*
+*.backup
