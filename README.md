@@ -14,6 +14,7 @@ Production-ready Docker setup for [ITFlow](https://github.com/itflow-org/itflow)
 ## Features
 
 - **Zero-config deployment** - Database schema auto-imports on first run
+- **Always up-to-date** - Pulls latest ITFlow release from GitHub during build
 - **Environment-based configuration** - Everything configured via `.env` file
 - **Production ready** - Security headers, health checks, automated backups
 - **Multi-service** - Web, cron jobs, MariaDB, optional nginx/phpMyAdmin

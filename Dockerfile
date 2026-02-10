@@ -55,8 +55,14 @@ RUN a2enmod rewrite headers env expires ssl
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
-COPY itflow-master/ /var/www/html/
+# Download latest ITFlow release from GitHub
+RUN LATEST_RELEASE=$(curl -s https://api.github.com/repos/itflow-org/itflow/releases/latest | grep 'tag_name' | cut -d'"' -f4) && \
+    echo "Downloading ITFlow ${LATEST_RELEASE}..." && \
+    curl -L "https://github.com/itflow-org/itflow/archive/refs/tags/${LATEST_RELEASE}.tar.gz" -o /tmp/itflow.tar.gz && \
+    tar -xzf /tmp/itflow.tar.gz -C /tmp && \
+    mv /tmp/itflow-*/* /var/www/html/ && \
+    rm -rf /tmp/itflow* && \
+    echo "ITFlow ${LATEST_RELEASE} installed"
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
